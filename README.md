@@ -1,7 +1,6 @@
 # ALSR-CNN
 Code for independent study 
 
-
 ## Dependencies
 - python 3.12.0
 - pyTorch
@@ -10,6 +9,7 @@ Code for independent study
 - tensorboard
 - conda
 - jupyter notebook
+- ffmpeg-python
 
 ## To launch
 It is recommended to create a venv in the ALSR-CNN directory to install dependencies and proceed.  
