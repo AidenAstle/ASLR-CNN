@@ -1,7 +1,7 @@
-from Datasets import (jesterDS, yt_asl) 
+from Datasets import (jesterDS, wlasl) 
 
 def get_train_set(opt, spatial_transform, temporal_transform, target_transform):
-    assert opt.database in ['jester', 'yt_asl']
+    assert opt.database in ['jester', 'wlasl']
     subset = 'training'
     
     if opt.database == 'jester':
@@ -13,8 +13,8 @@ def get_train_set(opt, spatial_transform, temporal_transform, target_transform):
             temporal_transform=temporal_transform,
             target_transform=target_transform,
             sample_duration=opt.sample_duration)
-    elif opt.database == 'yt_asl':
-        training_set = yt_asl(
+    elif opt.database == 'wlasl':
+        training_set = wlasl(
             opt.video_path,
             opt.annotation_path,
             'training',
