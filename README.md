@@ -1,4 +1,4 @@
-# ALSR-CNN
+# ASLR-CNN
 Code for independent study 
 
 ## Dependencies
