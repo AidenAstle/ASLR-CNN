@@ -33,5 +33,17 @@ def Model_Select():
     print(f"You selected : {mod_selected}")
     return mod_selected
 
-model_selection = Model_Select()
+# model_selection = Model_Select()
 
+#load data set and select training data
+train_data = dataset.get_test_set()
+val_data = dataset.get_validation_set()
+
+# Generate resnext50 model
+# only using 300 labels for now
+model = resnxt.resnext50(
+                num_classes=300,
+                shortcut_type="B",
+                cardinality=32,
+                sample_size=16, # I have no idea how to decide this rn
+                sample_duration=16)

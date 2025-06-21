@@ -60,32 +60,33 @@ def load_annotation_data(data_file_path):
 def get_class_labels(data):
     class_labels_map = {}
     index = 0
-    for entry in data['labels']: # for every entry in the file WLASL_v0.3.json
-        class_label = entry # select the value of the gloss key
+    for entry in data['labels']: # for every label present
+        class_label = entry
         class_labels_map[class_label] = index
         index += 1
     return class_labels_map
 
 
-def get_video_names_and_annotations(data):
+def get_video_names_and_annotations(data, subset):
     video_ids = []
     annotations = []
 
     for k,v in data['database'].items():
-        # label = v['annotations']['label']
-        #video_names.append('{}/{}'.format(label, key))
-        video_ids.append(k)
-        annotations.append(v)
-
+        this_subset = v['subset']
+        if this_subset == subset:
+            label = v['annotations']['label']
+            #video_names.append('{}/{}'.format(label, key))
+            video_ids.append(k)
+            annotations.append(v['annotations'])
     return video_ids, annotations
 
 
-def make_dataset(root_path, annotation_path, n_samples_for_each_video,
-                 sample_duration):
+def make_dataset(root_path, annotation_path, subset='training', n_samples_for_each_video=1,
+                 sample_duration=16):
     data = load_annotation_data(annotation_path)
-    print(data)
-    video_names, annotations = get_video_names_and_annotations(data)
-    print(annotations)
+    #print(data)
+    video_names, annotations = get_video_names_and_annotations(data, subset)
+    #print(annotations)
     class_to_idx = get_class_labels(data)
     idx_to_class = {}
     for name, label in class_to_idx.items():
@@ -112,7 +113,7 @@ def make_dataset(root_path, annotation_path, n_samples_for_each_video,
             'video_id': video_names[i]
         }
         if len(annotations) != 0:
-            sample['label'] = class_to_idx[annotations[i]] # this might be wrong b/c some videos are not converted yet
+            sample['label'] = class_to_idx[annotations[i]['label']] # this might be wrong b/c some videos are not converted yet
         else:
             sample['label'] = -1
 
@@ -135,7 +136,7 @@ def make_dataset(root_path, annotation_path, n_samples_for_each_video,
     return dataset, idx_to_class
 
 
-class Jester(data.Dataset):
+class Wlasl(data.Dataset):
     """
     Args:
         root (string): Root directory path.
@@ -203,5 +204,5 @@ class Jester(data.Dataset):
 if __name__ == '__main__':
     run_tst = sys.argv[1]
     if run_tst == "--t":
-        dataset, ind = make_dataset("../../wlasl_data/extracted", "./Data/my_json.json", 1, 16)
+        dataset, ind = make_dataset("../../wlasl_data/extracted", "./Data/wlasl_data.json", 'training', 1, 16)
     print(dataset)
