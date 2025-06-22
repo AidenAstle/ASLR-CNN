@@ -1,46 +1,43 @@
-from Datasets import (jesterDS, wlasl) 
+from Datasets import wlasl
 
-def get_train_set(opt, spatial_transform, temporal_transform, target_transform):
-    assert opt.database in ['jester', 'wlasl']
-    subset = 'training'
-    
+def get_train_set(spatial_transform, temporal_transform, target_transform):
     training_set = wlasl(
-            opt.video_path,
-            opt.annotation_path,
+            "../../wlasl_data/extracted",
+            "./Data/wlasl_data.json",
             'training',
             spatial_transform=spatial_transform,
             temporal_transform=temporal_transform,
             target_transform=target_transform,
-            sample_duration=opt.sample_duration)
+            sample_duration=16) #default
     
     return training_set
 
-def get_validation_set(opt, spatial_transform, temporal_transform, target_transform):
+def get_validation_set(spatial_transform, temporal_transform, target_transform):
     validation_set = wlasl(
-            opt.video_path,
-            opt.annotation_path,
+            "../../wlasl_data/extracted",
+            "./Data/wlasl_data.json",
             'validation',
-            opt.n_val_samples,
+            1, #num samples, defaults to 1
             spatial_transform,
             temporal_transform,
             target_transform,
-            sample_duration=opt.sample_duration)
+            sample_duration=16) #default
     return validation_set
     
-def get_test_set(opt, spatial_transform, temporal_transform, target_transform):
-    assert opt.test_subset in ['val', 'test']
+def get_test_set(tst_subset, spatial_transform, temporal_transform, target_transform):
+    assert tst_subset in ['val', 'test']
 
-    if opt.test_subset == 'val':
+    if tst_subset == 'val':
         subset = 'validation'
-    elif opt.test_subset == 'test':
+    elif tst_subset == 'test':
         subset = 'testing'
     test_set = wlasl(
-            opt.video_path,
-            opt.annotation_path,
+            "../../wlasl_data/extracted",
+            "./Data/wlasl_data.json",
             subset,
             0,
             spatial_transform,
             temporal_transform,
             target_transform,
-            sample_duration=opt.sample_duration)
+            sample_duration=16)
     return test_set

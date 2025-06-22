@@ -156,7 +156,7 @@ class Wlasl(data.Dataset):
     def __init__(self,
                  root_path,
                  annotation_path,
-                 subset,
+                 subset='training',
                  n_samples_for_each_video=1,
                  spatial_transform=None,
                  temporal_transform=None,
@@ -164,7 +164,7 @@ class Wlasl(data.Dataset):
                  sample_duration=16,
                  get_loader=get_default_video_loader):
         self.data, self.class_names = make_dataset(
-            root_path, annotation_path, n_samples_for_each_video,
+            root_path, annotation_path, subset, n_samples_for_each_video,
             sample_duration)
 
         self.spatial_transform = spatial_transform
