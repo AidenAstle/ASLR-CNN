@@ -1,10 +1,11 @@
 import torch
 from torch.autograd import Variable
+from torchvision.transforms import functional
 import time
 import os
 import sys
 
-from utils import *
+from utils.utils import *
 
 
 def train_epoch(epoch, data_loader, model, criterion, optimizer, opt,
@@ -25,7 +26,7 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, opt,
 
         #if not opt.no_cuda:
         #    targets = targets.cuda()
-        inputs = Variable(inputs)
+        inputs = Variable(inputs.float()) # call .float to convert byte tensor data to floats
         targets = Variable(targets)
         outputs = model(inputs)
         loss = criterion(outputs, targets)

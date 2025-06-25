@@ -1,9 +1,9 @@
-from Datasets import wlasl
+from Datasets.wlasl import Wlasl
 
 def get_train_set(spatial_transform, temporal_transform, target_transform):
-    training_set = wlasl(
-            "../../wlasl_data/extracted",
-            "./Data/wlasl_data.json",
+    training_set = Wlasl(
+            "./wlasl_data/extracted", # paths are from the root folder since thats where testing is run from
+            "./Build_code/Datasets/Data/wlasl_data.json",
             'training',
             spatial_transform=spatial_transform,
             temporal_transform=temporal_transform,
@@ -13,9 +13,9 @@ def get_train_set(spatial_transform, temporal_transform, target_transform):
     return training_set
 
 def get_validation_set(spatial_transform, temporal_transform, target_transform):
-    validation_set = wlasl(
-            "../../wlasl_data/extracted",
-            "./Data/wlasl_data.json",
+    validation_set = Wlasl(
+            "./wlasl_data/extracted", # paths are from the root folder since thats where testing is run from
+            "./Build_code/Datasets/Data/wlasl_data.json",
             'validation',
             1, #num samples, defaults to 1
             spatial_transform,
@@ -31,9 +31,9 @@ def get_test_set(tst_subset, spatial_transform, temporal_transform, target_trans
         subset = 'validation'
     elif tst_subset == 'test':
         subset = 'testing'
-    test_set = wlasl(
-            "../../wlasl_data/extracted",
-            "./Data/wlasl_data.json",
+    test_set = Wlasl(
+            "./wlasl_data/extracted", # paths are from the root folder since thats where testing is run from
+            "./Build_code/Datasets/Data/wlasl_data.json",
             subset,
             0,
             spatial_transform,

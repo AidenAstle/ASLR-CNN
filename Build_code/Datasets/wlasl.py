@@ -1,5 +1,6 @@
 import torch
 import torch.utils.data as data
+import torchvision.transforms as transforms
 from PIL import Image
 import os
 import math
@@ -38,7 +39,8 @@ def get_default_image_loader():
 def video_loader(video_dir_path, frame_indices, sample_duration, image_loader):
     video = []
     for i in frame_indices:
-        image_path = os.path.join(video_dir_path, '{:03d}.jpg'.format(i))
+        image_path = os.path.join(video_dir_path, 'frame_{:03d}.jpg'.format(i))
+        print(image_path)
         if os.path.exists(image_path):
             video.append(image_loader(image_path))
         else:
@@ -102,7 +104,7 @@ def make_dataset(root_path, annotation_path, subset='training', n_samples_for_ea
         # This is actually the path to the video folder that holds the extracted frames
         video_path = os.path.join(root_path, video_names[i])
         if not os.path.exists(video_path):
-            print(f'{video_path} could not be found')
+            #print(f'{video_path} could not be found')
             continue
 
         n_frames = len(os.listdir(video_path))
@@ -188,7 +190,10 @@ class Wlasl(data.Dataset):
         if self.spatial_transform is not None:
             self.spatial_transform.randomize_parameters()
             clip = [self.spatial_transform(img) for img in clip]
-        im_dim = clip[0].size()[-2:]
+        if(not torch.is_tensor(clip[0])):
+            transform = transforms.Compose([transforms.PILToTensor()])
+            clip = [transform(img) for img in clip]
+        #im_dim = clip[0].size()[-2:]
         clip = torch.stack(clip, 0).permute(1, 0, 2, 3)
 
         target = self.data[index]
@@ -200,9 +205,9 @@ class Wlasl(data.Dataset):
     def __len__(self):
         return len(self.data)
     
-    
-if __name__ == '__main__':
-    run_tst = sys.argv[1]
-    if run_tst == "--t":
-        dataset, ind = make_dataset("../../wlasl_data/extracted", "./Data/wlasl_data.json", 'training', 1, 16)
-    print(dataset)
+# For tst purposes
+#if __name__ == '__main__':
+#    run_tst = sys.argv[1]
+#    if run_tst == "--t":
+#        dataset, ind = make_dataset("../../wlasl_data/extracted", "./Data/wlasl_data.json", 'training', 1, 16)
+#    print(dataset)

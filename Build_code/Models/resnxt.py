@@ -99,7 +99,7 @@ class ResNeXt(nn.Module):
         last_size = int(math.ceil(sample_size / 32))
         self.avgpool = nn.AvgPool3d(
             (last_duration, last_size, last_size), stride=1)
-        self.fc = nn.Linear(cardinality * 32 * block.expansion, num_classes)
+        self.fc = nn.Linear(cardinality * 256 * block.expansion, num_classes)
 
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
@@ -140,7 +140,7 @@ class ResNeXt(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-
+        
         x = self.avgpool(x)
 
         x = x.view(x.size(0), -1)
@@ -173,7 +173,7 @@ def get_fine_tuning_parameters(model, ft_portion):
 def resnext50(**kwargs):
     """Constructs a ResNet-50 model.
     """
-    model = ResNeXt(ResNeXtBottleneck, [3, 4, 6, 3], **kwargs)
+    model = ResNeXt(ResNeXtBottleneck, [3, 4, 6, 3], **kwargs) # added a 4 (8, 4, 4, 4) layers of flattening
     return model
 
 

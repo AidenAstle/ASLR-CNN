@@ -10,6 +10,9 @@ Code for independent study
 - conda
 - jupyter notebook
 - ffmpeg-python
+- opencv-python
+- scipy
+- sickit-learn
 
 ## To launch
 It is recommended to create a venv in the ALSR-CNN directory to install dependencies and proceed.  
