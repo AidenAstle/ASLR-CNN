@@ -176,7 +176,8 @@ def adjust_learning_rate(optimizer, epoch, opt):
         #param_group['lr'] = opt.learning_rate
 
 # very simplistic way to fix variable batch sizeing
-return {
+def collate_function(batch):
+    return {
         torch.stack([x[0] for x in batch]),
         torch.stack([torch.tensor(x[1]) for x in batch])
     }
