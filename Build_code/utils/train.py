@@ -8,7 +8,7 @@ import sys
 from utils.utils import *
 
 
-def train_epoch(epoch, data_loader, model, criterion, optimizer, opt,
+def train_epoch(epoch, data_loader, model, criterion, optimizer, cuda_opt,
                 epoch_logger, batch_logger):
     print('train at epoch {}'.format(epoch))
 
@@ -24,8 +24,8 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, opt,
     for i, (inputs, targets) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
-        #if not opt.no_cuda:
-        #    targets = targets.cuda()
+        if cuda_opt:
+            targets = targets.cuda()
         inputs = Variable(inputs.float()) # call .float to convert byte tensor data to floats
         targets = Variable(targets)
         outputs = model(inputs)

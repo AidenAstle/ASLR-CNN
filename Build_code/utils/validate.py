@@ -21,7 +21,7 @@ def val_epoch(epoch, data_loader, model, criterion, opt, logger):
     for i, (inputs, targets) in enumerate(data_loader):
         data_time.update(time.time() - end_time)
 
-        if not opt.no_cuda:
+        if torch.cuda.is_available():
             targets = targets.cuda()
         with torch.no_grad():
             inputs = Variable(inputs)

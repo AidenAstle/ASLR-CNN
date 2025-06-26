@@ -45,6 +45,10 @@ def Model_Select():
 # model_selection = Model_Select()
 
 if __name__ == "__main__":
+    device = 'cpu'
+    if torch.cuda.is_available():
+        device = 'cuda'
+    
     # Build Model
     # Generate resnext50 model
     # only using 300 labels for now
@@ -55,12 +59,23 @@ if __name__ == "__main__":
                     sample_size=16, # I have no idea how to decide this rn
                     sample_duration=16) # Num frames
     parameters = model.parameters() # get complete parameters of resNext model
+    if device == 'cuda':
+        model = model.cuda()
+        model = nn.DataParallel(model, device_ids=None)
+        pytorch_total_params = sum(p.numel() for p in model.parameters() if
+                               p.requires_grad)
+        print("Total number of trainable parameters: ", pytorch_total_params)
     print("------------------------------------------------------------- MODEL -------------------------------------------------------------\n", model)
     print("------------------------------------------------------------- PARAMETERS -------------------------------------------------------------\n", parameters)
 
     # Loss criterion
     criterion = nn.CrossEntropyLoss()
-
+    if device == 'cuda':
+        criterion.cuda()
+    print(f"------------------------------------------------------------\n :: Running with {device} :: \n------------------------------------------------------------")
+    
+    
+    
     # For training
     # crop_method = ['random', 'corner', 'center']
     crop_method = CenterCrop(100)
@@ -121,7 +136,11 @@ if __name__ == "__main__":
     for i in range(n_epochs):
     # for i in range(opt.begin_epoch, opt.begin_epoch + 10):
         #adjust_learning_rate(optimizer, i) # disregarded bc im not training past 30 eps rn
-        train_epoch(i, train_loader, model, criterion, optimizer, None,
+        if device == 'cuda':
+            cuda_opt = True
+        else:
+            cuda_opt = False
+        train_epoch(i, train_loader, model, criterion, optimizer, cuda_opt,
                     train_logger, train_batch_logger)
         state = {
             'epoch': i,
@@ -129,5 +148,6 @@ if __name__ == "__main__":
             'state_dict': model.state_dict(),
             'optimizer': optimizer.state_dict(),
             'best_prec1': best_prec1
-            }
-        save_checkpoint(state, False)
+        }
+        #save_checkpoint(state, False)
+    torch.save(model.state_dict(), f"./Pretrained/{n_epochs}_trained.pth")
