@@ -38,14 +38,20 @@ def get_default_image_loader():
 
 def video_loader(video_dir_path, frame_indices, sample_duration, image_loader):
     video = []
+    
     for i in frame_indices:
-        image_path = os.path.join(video_dir_path, 'frame_{:03d}.jpg'.format(i))
-        print(image_path)
-        if os.path.exists(image_path):
-            video.append(image_loader(image_path))
-        else:
-            return video
-
+        if i <= sample_duration:
+            image_path = os.path.join(video_dir_path, 'frame_{:03d}.jpg'.format(i))
+            
+            if os.path.exists(image_path):
+                last_img = image_loader(image_path)
+                video.append(image_loader(image_path))
+            else:
+                video.append(last_img) # in case of missing frame, copy last frame
+    if len(video) < sample_duration:
+        for i in range(sample_duration - len(video)):
+            video.append(last_img) # if the video doesnt have at lst sample_dur frames, copy the last img until it does
+         
     return video
 
 
@@ -98,7 +104,7 @@ def make_dataset(root_path, annotation_path, subset='training', n_samples_for_ea
     for i in range(len(video_names)):
         if i == 0:
             print('RUNNING')
-        if i % 1000 == 0:
+        if i % 20 == 0 or i == len(video_names)-1:
             print(f'dataset loading [{i}/{len(video_names)}]')
 
         # This is actually the path to the video folder that holds the extracted frames

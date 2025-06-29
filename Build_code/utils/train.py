@@ -5,6 +5,7 @@ import time
 import os
 import sys
 
+from utils.tensor_utils import *
 from utils.utils import *
 
 
@@ -76,6 +77,8 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, cuda_opt,
         'prec5': top5.avg.item(),
         'lr': optimizer.param_groups[0]['lr']
     })
+    
+    return losses.avg.item()
 
     #if epoch % opt.checkpoint == 0:
     #    save_file_path = os.path.join(opt.result_path,

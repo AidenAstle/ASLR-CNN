@@ -6,10 +6,6 @@ import shutil
 import random
 #import ffmpeg
 
-home = "C:/Users/atrai/OneDrive - Lehigh University/Desktop/Summer 25/Code/ALSR-CNN/wlasl_data/"
-vid_path = "videos/"
-frame_path = "extracted/"
-frame_rate = 5
 # command -> ffmpeg -i <src> -vf fps=<frames>/<seconds> <dest>
 
 def extract_frames(src, dest, testing=False, test_range=5, rand_set=False):
@@ -41,6 +37,10 @@ def extract_frames(src, dest, testing=False, test_range=5, rand_set=False):
     print('[DEBUG:] Done')
     
 if __name__ == '__main__':
+    vid_path = sys.argv[1]
+    dest_path = sys.argv[2]
+    frame_rate = int(sys.argv[3])
+    extract_frames(vid_path, dest_path, frame_rate)
     if sys.argv[1] == '--b':  # build all files
         extract_frames("./videos", "./extracted", testing=False)
 # extract_frames("./videos", "./extracted", testing=True, test_range=100, rand_set=True)

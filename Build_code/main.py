@@ -30,17 +30,17 @@ from utils.utils import *
 
 ## Model Selection
 def Model_Select():
-    usr_selection = int(input("Select a model:\n\t1. jester_resnext_101_RGB_32 (Enter 1)\n\t2. (Enter 2)\n\t3. (Enter 3)\n"))
+    usr_selection = int(input("Select a mode:\n\t1. Test (50 gestures) (Enter 1)\n\t2. Using Pretrained Model (Enter 2)\n\t3. Train Model (Enter 3)\n"))
     assert usr_selection in {1, 2, 3}, "[ERROR:] Invalid Selection"
     match usr_selection:
         case 1:
-            mod_selected = "resnxt"
+            mode_selected = "tst"
         case 2:
-            mod_selected = "not_imp"
+            mod_selected = "pretrain"
         case 3:
-            mod_selected = "not_imp"
-    print(f"You selected : {mod_selected}")
-    return mod_selected
+            mod_selected = "build"
+    print(f"You selected : {mode_selected}")
+    return mode_selected
 
 # model_selection = Model_Select()
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     model = resnxt.resnext50(
                     num_classes=2000,
                     shortcut_type="B",
-                    cardinality=64,
+                    cardinality=32,
                     sample_size=16, # I have no idea how to decide this rn
                     sample_duration=16) # Num frames
     parameters = model.parameters() # get complete parameters of resNext model
@@ -78,8 +78,9 @@ if __name__ == "__main__":
     
     # For training
     # crop_method = ['random', 'corner', 'center']
-    crop_method = CenterCrop(100)
-    spatial_transform = Compose([ # figure all this, its from the main of the reference
+    # crop_method = CenterCrop(100)
+    crop_method = MultiScaleRandomCrop([1.0, 1.0, 1.0, 1.0, 1.0], 112) # using default scales=1 and size=112
+    spatial_transform = Compose([ # just using simple random cropping for now
         #RandomHorizontalFlip(),
         #RandomRotate(),
         #RandomResize(),
@@ -91,10 +92,10 @@ if __name__ == "__main__":
         #SpatialElasticDisplacement(),
         # ToTensor(opt.norm_value), norm_method # figure this out
     ])
-    temporal_transform = TemporalRandomCrop(16, 1)
+    # temporal_transform = TemporalRandomCrop(16, 1)
     target_transform = ClassLabel()
     #load data set and select training data
-    train_data = dataset.get_train_set(spatial_transform, temporal_transform, target_transform)
+    train_data = dataset.get_train_set(spatial_transform=spatial_transform, temporal_transform=None, target_transform=target_transform)
     train_loader = torch.utils.data.DataLoader(
                 train_data,
                 batch_size=8,
@@ -121,13 +122,14 @@ if __name__ == "__main__":
                     patience=1 # for test purposes
                 )
 
-    val_data = dataset.get_validation_set(spatial_transform, temporal_transform, target_transform)
+    val_data = dataset.get_validation_set(spatial_transform=spatial_transform, temporal_transform=None, target_transform=target_transform)
     val_loader = torch.utils.data.DataLoader(
                 val_data,
                 batch_size=8,
                 shuffle=False,
                 num_workers=1, # for now since I only have my pc
                 pin_memory=True)
+    val_logger = Logger(os.path.join('"./Build_code/logs"', '_val.log'), ['epoch', 'loss', 'prec1', 'prec5'])
 
     # BEGIN
     best_prec1 = 0
@@ -150,4 +152,16 @@ if __name__ == "__main__":
             'best_prec1': best_prec1
         }
         #save_checkpoint(state, False)
+        
+        # validation
+        validation_loss, prec1 = val_epoch(i, val_loader, model, criterion, cuda_opt, val_logger)
+        is_best = prec1 > best_prec1
+        best_prec1 = max(prec1, best_prec1)
+        state = {
+            'epoch': i,
+            'arch': 'n/a',
+            'state_dict': model.state_dict(),
+            'optimizer': optimizer.state_dict(),
+            'best_prec1': best_prec1
+        }
     torch.save(model.state_dict(), f"./Pretrained/{n_epochs}_trained.pth")
