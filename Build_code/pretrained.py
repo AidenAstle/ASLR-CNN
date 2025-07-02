@@ -63,7 +63,7 @@ if __name__ == "__main__":
                     num_classes=10,
                     shortcut_type="B",
                     cardinality=32,
-                    sample_size=224, # Its the crop essentially
+                    sample_size=112, # Its the crop essentially
                     sample_duration=16) # Num frames
     # Handles loading pretrained model data
     pretrain = torch.load(model_path, map_location=torch.device(device))
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # For training
     # crop_method = ['random', 'corner', 'center']
     # crop_method = CenterCrop(100)
-    crop_method = MultiScaleRandomCrop([1.0, 1.0, 1.0, 1.0, 1.0], 224) # using default scales=1.0, n_sclaes=5, and size=112 for simplicity
+    crop_method = MultiScaleRandomCrop([1.0, 1.0, 1.0, 1.0, 1.0], 112) # using default scales=1.0, n_sclaes=5, and size=112 for simplicity
     spatial_transform = Compose([ # just using simple random cropping for now
         #RandomHorizontalFlip(),
         #RandomRotate(),
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         #SaltImage(),
         #Gaussian_blur(),
         #SpatialElasticDisplacement(),
-        # ToTensor(opt.norm_value), norm_method # figure this out
+        #ToTensor()#, norm_method # figure this out
     ])
     # temporal_transform = TemporalRandomCrop(16, 1)
     target_transform = ClassLabel()

@@ -496,7 +496,7 @@ class SaltImage(object):
 
         if self.p < 0.10:
             data_final = []
-            img = img.astype(np.float)
+            img = img.astype(np.float64)
             img_shape = img.shape
             noise = np.random.randint(self.ratio, size=img_shape)
             img = np.where(noise == 0, 255, img)
@@ -525,7 +525,7 @@ class Dropout(object):
 
         if self.p < 0.10:
             data_final = []
-            img = img.astype(np.float)
+            img = img.astype(np.float64)
             img_shape = img.shape
             noise = np.random.randint(self.ratio, size=img_shape)
             img = np.where(noise == 0, 0, img)

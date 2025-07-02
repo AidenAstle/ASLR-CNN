@@ -45,7 +45,7 @@ def video_loader(video_dir_path, frame_indices, sample_duration, image_loader):
             
             if os.path.exists(image_path):
                 last_img = image_loader(image_path)
-                video.append(image_loader(image_path))
+                video.append(last_img)
             else:
                 video.append(last_img) # in case of missing frame, copy last frame
     if len(video) < sample_duration:
