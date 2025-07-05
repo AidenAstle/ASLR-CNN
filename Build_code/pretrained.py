@@ -63,7 +63,9 @@ if __name__ == "__main__":
                     num_classes=10,
                     shortcut_type="B",
                     cardinality=32,
-                    sample_size=112, # Its the crop essentially
+                    # samp_size = 64 for local testing purposes,
+                    # this shoud be 112 or 224 for actual use
+                    sample_size=64,
                     sample_duration=16) # Num frames
     # Handles loading pretrained model data
     pretrain = torch.load(model_path, map_location=torch.device(device))
@@ -72,32 +74,26 @@ if __name__ == "__main__":
     #model = modify_kernels(model)
     if device == 'cpu': #wrap with parallel real quick to access module data
         model = nn.DataParallel(model, device_ids=None)
-        # pretrain.module.conv1 = nn.Conv3d(3, 64, kernel_size=7, stride=(1, 2, 2), padding=(3, 3, 3), bias=False)
-        # pretrain["state_dict"].module.fc = nn.Linear(pretrain["state_dict"].module.fc.in_features, 10) # alter final and first layer to manage size mismatches
         model.load_state_dict(pretrain["state_dict"], strict=False) # loads pretrained model weights
-        # model.module.fc = nn.Linear(model.module.fc.in_features, 10) # should be unnecesary
         model = model.module # unwrap from parallel if not using cuda
     else:
-        model.module.fc = model.module.fc.cuda()
-        model = model.cuda()
+        model = model.to('cuda')
         model = nn.DataParallel(model, device_ids=None)
-        model.load_state_dict(pretrain["state_dict"])
-        # model.module.fc = nn.Linear(model.module.fc.in_features, 10)
+        
+        pretrain = torch.load(model_path, map_location=torch.device('cpu'))
+        model.load_state_dict(pretrain["state_dict"], strict=False)
+        model.module.fc = nn.Linear(model.module.fc.in_features, 2000)
+        model.module.fc = model.module.fc.to('cuda')
+        
         pytorch_total_params = sum(p.numel() for p in model.parameters() if
                                p.requires_grad)
         print("Total number of trainable parameters: ", pytorch_total_params)
         
-    #debugging
-    # print(pretrain["state_dict"])
-    # print("-------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
-    # print(model.state_dict())
-    model = modify_kernels(model)
+    model = modify_kernels(model) # Modify kernels to support RGB
+    if device == 'cuda': # enforce that everything is on cuda
+        model.to('cuda')
+    parameters = model.parameters()
     
-    parameters = model.parameters() # get complete parameters of resNext model
-    
-    print("------------------------------------------------------------- MODEL -------------------------------------------------------------\n", model)
-    print("------------------------------------------------------------- PARAMETERS -------------------------------------------------------------\n", parameters)
-
     # Loss criterion
     criterion = nn.CrossEntropyLoss()
     if device == 'cuda':
@@ -109,26 +105,28 @@ if __name__ == "__main__":
     # For training
     # crop_method = ['random', 'corner', 'center']
     # crop_method = CenterCrop(100)
-    crop_method = MultiScaleRandomCrop([1.0, 1.0, 1.0, 1.0, 1.0], 112) # using default scales=1.0, n_sclaes=5, and size=112 for simplicity
-    spatial_transform = Compose([ # just using simple random cropping for now
+    norm_method = Normalize([0, 0, 0], [1, 1, 1]) # normalize RGB vals b/t 0 and 1
+    crop_method = MultiScaleRandomCrop([1.0, 1.0, 1.0, 1.0, 1.0], 64) # using default scales=1.0, n_sclaes=5, and size=112 for simplicity
+    spatial_transform = Compose([
         #RandomHorizontalFlip(),
         #RandomRotate(),
         #RandomResize(),
         crop_method,
         #MultiplyValues(),
-        #Dropout(),
+        # Dropout(),
         #SaltImage(),
         #Gaussian_blur(),
         #SpatialElasticDisplacement(),
-        #ToTensor()#, norm_method # figure this out
+        ToTensor(), # converts and normalizes
+        #norm_method # convert from 0-255 to 0-1
     ])
-    # temporal_transform = TemporalRandomCrop(16, 1)
+    # temporal_transform = TemporalRandomCrop(8, 1) # randomly select 8 consecutive frames
     target_transform = ClassLabel()
     #load data set and select training data
     train_data = dataset.get_train_set(spatial_transform=spatial_transform, temporal_transform=None, target_transform=target_transform, partial_set=True)
     train_loader = torch.utils.data.DataLoader(
                 train_data,
-                batch_size=8,
+                batch_size=5,
                 shuffle=True,
                 num_workers=1, # for now since I only have my pc
                 collate_fn=collate_function,
@@ -142,7 +140,7 @@ if __name__ == "__main__":
 
     optimizer = optim.SGD(
                 parameters,
-                lr=0.004,
+                lr=0.01,
                 momentum=0.9,
                 dampening=0.9,
                 weight_decay=0.001,
@@ -156,7 +154,7 @@ if __name__ == "__main__":
     val_data = dataset.get_validation_set(spatial_transform=spatial_transform, temporal_transform=None, target_transform=target_transform, partial_set=True)
     val_loader = torch.utils.data.DataLoader(
                 val_data,
-                batch_size=8,
+                batch_size=5,
                 shuffle=False,
                 num_workers=1, # for now since I only have my pc
                 collate_fn=collate_function,
@@ -166,7 +164,7 @@ if __name__ == "__main__":
     # BEGIN
     best_prec1 = 0
     print('run')
-    n_epochs = 10
+    n_epochs = 1
     for i in range(n_epochs):
     # for i in range(opt.begin_epoch, opt.begin_epoch + 10):
         #adjust_learning_rate(optimizer, i) # disregarded bc im not training past 30 eps rn

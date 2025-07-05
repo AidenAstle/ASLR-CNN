@@ -115,7 +115,7 @@ class TemporalRandomCrop(object):
             list: Cropped frame indices.
         """
 
-        vid_duration  = len(frame_indices)
+        vid_duration  = 16 # all videos are 16 frames
         clip_duration = self.size * self.downsample
 
         rand_end = max(0, vid_duration - clip_duration - 1)

@@ -29,8 +29,6 @@ def train_epoch(epoch, data_loader, model, criterion, optimizer, cuda_opt,
             targets = targets.cuda()
         inputs = Variable(inputs.float()) # call .float to convert byte tensor data to floats
         targets = Variable(targets)
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
 
         losses.update(loss.data, inputs.size(0))
         prec1, prec5 = calculate_accuracy(outputs.data, targets.data, topk=(1,5))

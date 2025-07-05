@@ -4,6 +4,7 @@ import numbers
 import collections
 import numpy as np
 import torch
+import torchvision.transforms as transforms
 import cv2
 import scipy.ndimage
 from PIL import Image, ImageOps
@@ -53,40 +54,10 @@ class ToTensor(object):
         Returns:
             Tensor: Converted image.
         """
-        if isinstance(pic, np.ndarray):
-            # handle numpy array
-            img = torch.from_numpy(pic.transpose((2, 0, 1)))
-            # backward compatibility
-            return img.float().div(self.norm_value)
-
-        if accimage is not None and isinstance(pic, accimage.Image):
-            nppic = np.zeros(
-                [pic.channels, pic.height, pic.width], dtype=np.float32)
-            pic.copyto(nppic)
-            return torch.from_numpy(nppic)
-
-        # handle PIL Image
-        if pic.mode == 'I':
-            img = torch.from_numpy(np.array(pic, np.int32, copy=False))
-        elif pic.mode == 'I;16':
-            img = torch.from_numpy(np.array(pic, np.int16, copy=False))
-        else:
-            img = torch.ByteTensor(torch.ByteStorage.from_buffer(pic.tobytes()))
-        # PIL image mode: 1, L, P, I, F, RGB, YCbCr, RGBA, CMYK
-        if pic.mode == 'YCbCr':
-            nchannel = 3
-        elif pic.mode == 'I;16':
-            nchannel = 1
-        else:
-            nchannel = len(pic.mode)
-        img = img.view(pic.size[1], pic.size[0], nchannel)
-        # put it from HWC to CHW format
-        # yikes, this transpose takes 80% of the loading time/CPU
-        img = img.transpose(0, 1).transpose(0, 2).contiguous()
-        if isinstance(img, torch.ByteTensor):
-            return img.float().div(self.norm_value)
-        else:
-            return img
+        # turn this into a wrapper for the torchvision to tensor function
+        trans = transforms.Compose([transforms.ToTensor()])
+        img = trans(pic)
+        return img
 
     def randomize_parameters(self):
         pass
